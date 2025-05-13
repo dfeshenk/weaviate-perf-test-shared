@@ -1,0 +1,4 @@
+weaviate-client
+locust
+chromadb==0.5.3
+openai

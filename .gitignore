@@ -172,3 +172,11 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+# Intellij files
+.idea
+*.iml
+*.iws
+
+# Mac OS X files
+.DS_Store
+*.launch.json
