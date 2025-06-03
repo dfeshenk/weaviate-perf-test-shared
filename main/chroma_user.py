@@ -2,6 +2,7 @@ import os
 import time
 import logging
 import chromadb
+import traceback
 from chromadb.config import Settings
 from locust import User, events
 from chromadb.utils import embedding_functions
@@ -48,7 +49,8 @@ class ChromaClient:
             logging.info("Successfully connected to ChromaDB.")
         except Exception as e:
             logging.error(f"Failed to connect to ChromaDB: {e}")
-            raise
+        except:
+            logging.error(traceback.format_exc())
 
     def request(self, name, func, *args, **kwargs):
         request_meta = {
@@ -66,6 +68,8 @@ class ChromaClient:
         except Exception as e:
             request_meta["exception"] = e
             logging.error(f"Error in {name}: {e}")
+        except:
+            logging.error(traceback.format_exc())
         request_meta["response_time"] = (time.perf_counter() - start_perf_counter) * 1000
         self._request_event.fire(**request_meta)
         return request_meta["response"]

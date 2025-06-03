@@ -2,6 +2,7 @@ import time
 import os
 import logging
 import weaviate
+import traceback
 
 from locust import User,events
 from weaviate.config import AdditionalConfig, Timeout
@@ -54,15 +55,16 @@ class WeaviateClient:
                         query=int(os.getenv("WEAVIATE_TIMEOUT_QUERY", 60)),
                         insert=int(os.getenv("WEAVIATE_TIMEOUT_INSERT", 120))
                     )
-                ),
-                skip_init_checks=False
+                )            
             )
             if not self.client.is_ready():
                 raise RuntimeError(
-                    f"Weaviate client is not ready. "
+                    f"Weaviate client is not ready."
                 )
         except Exception as e:
             logging.error(f"Failed to connect to Weaviate: {e}")
+        except:
+            logging.error(traceback.format_exc())
 
     def request(self, name, func, *args, **kwargs):
         request_meta = {
@@ -79,9 +81,11 @@ class WeaviateClient:
             request_meta["response"] = func(*args, **kwargs)
         except Exception as e:
             request_meta["exception"] = e
-            logging.error(f"Error in {name}: {e}")
-        request_meta["response_time"] = (time.perf_counter() - start_perf_counter) * 1000
-        self._request_event.fire(**request_meta)
+        except:
+            logging.error(traceback.format_exc())
+        finally:
+            request_meta["response_time"] = (time.perf_counter() - start_perf_counter) * 1000
+            self._request_event.fire(**request_meta)
         return request_meta["response"]
 
     def list_collections(self):
@@ -130,7 +134,7 @@ class WeaviateClient:
     def close(self):
         if self.client:
             self.client.close()
-            logging.info("Connection closed.")
+            logging.info("Connection to Weaviate closed.")
 
 class WeaviateUser(User):
     abstract = True
